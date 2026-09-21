@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Teknologi & Artificial Intelligence</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#090d16',
+                            card: 'rgba(15, 23, 42, 0.75)',
+                            border: 'rgba(56, 189, 248, 0.25)',
+                            primary: '#00f0ff',
+                            secondary: '#7000ff',
+                            accent: '#00ff9d',
+                            danger: '#ff2a6d'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 20px rgba(0, 240, 255, 0.35)',
+                        'neon-purple': '0 0 20px rgba(112, 0, 255, 0.35)',
+                        'neon-green': '0 0 20px rgba(0, 255, 157, 0.35)',
+                        'neon-red': '0 0 20px rgba(255, 42, 109, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Canvas Confetti library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #050811;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, transparent 80%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 240, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 240, 255, 0.6);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.03); }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .floating-element {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        .option-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .option-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Shake animation for wrong answer */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake-anim {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-cyan-500 selection:text-slate-900">
+
+    <!-- TOP BAR -->
+    <header class="w-full max-w-5xl mx-auto p-4 sm:p-6 flex justify-between items-center z-20">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-microchip text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-cyan-400 via-teal-300 to-purple-400 bg-clip-text text-transparent">
+                    AI & TECH QUIZ
+                </h1>
+                <p class="text-xs text-slate-400">Interactive Knowledge Assessment</p>
+            </div>
+        </div>
+
+        <!-- Audio Mute & Score Quick View -->
+        <div class="flex items-center space-x-3">
+            <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl glass-card text-slate-300 hover:text-cyan-400 transition" title="Toggle Sound FX">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-lg"></i>
+            </button>
+            <div id="topScoreDisplay" class="hidden sm:flex items-center space-x-2 px-3.5 py-2 rounded-xl glass-card border border-cyan-500/30">
+                <i class="fa-solid fa-trophy text-amber-400"></i>
+                <span class="text-xs text-slate-400">Skor Tertinggi:</span>
+                <span id="highScoreText" class="font-bold text-cyan-400">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full max-w-3xl mx-auto px-4 py-2 flex-grow flex items-center justify-center relative z-10">
+        
+        <!-- ================= 1. START SCREEN ================= -->
+        <section id="startScreen" class="w-full glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden transition-all duration-500">
+            <!-- Decorative Glow Backgrounds -->
+            <div class="absolute -top-24 -right-24 w-60 h-60 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center space-y-6 relative z-10">
+                <!-- Hero Badge -->
+                <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold tracking-wide uppercase floating-element">
+                    <i class="fa-solid fa-sparkles text-cyan-400"></i>
+                    <span>Tantangan Pengetahuan Digital</span>
+                </div>
+
+                <!-- Main Title -->
+                <div class="space-y-2">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                        Kuis Teknologi & <br class="hidden sm:inline"/>
+                        <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-purple-500 bg-clip-text text-transparent">
+                            Artificial Intelligence
+                        </span>
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto font-normal leading-relaxed">
+                        Uji wawasanmu seputar perkembangan teknologi terkini, kecerdasan buatan, internet, dan inovasi digital dalam 15 soal interaktif!
+                    </p>
+                </div>
+
+                <!-- Rules Grid -->
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto pt-2">
+                    <div class="glass-card p-3 rounded-2xl text-center">
+                        <i class="fa-solid fa-list-check text-cyan-400 text-xl mb-1"></i>
+                        <p class="text-xs text-slate-400">Jumlah Soal</p>
+                        <p class="font-bold text-slate-100 text-sm">15 Soal</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl text-center">
+                        <i class="fa-solid fa-stopwatch text-purple-400 text-xl mb-1"></i>
+                        <p class="text-xs text-slate-400">Waktu / Soal</p>
+                        <p class="font-bold text-slate-100 text-sm">25 Detik</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl text-center">
+                        <i class="fa-solid fa-bolt text-emerald-400 text-xl mb-1"></i>
+                        <p class="text-xs text-slate-400">Sistem Poin</p>
+                        <p class="font-bold text-slate-100 text-sm">Bonus Speed</p>
+                    </div>
+                </div>
+
+                <!-- Player Input Form -->
+                <div class="max-w-md mx-auto space-y-4 pt-4 text-left">
+                    <label for="playerName" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                        Nama Pemain <span class="text-slate-500">(Opsional)</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <input type="text" id="playerName" placeholder="Masukkan nama kamu..." 
+                            class="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900/80 border border-slate-700/80 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition">
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-2">
+                    <button onclick="startQuiz()" class="w-full max-w-md py-4 px-8 rounded-2xl font-bold text-lg bg-gradient-to-r from-cyan-500 via-teal-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-slate-950 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition duration-200 group">
+                        <span class="flex items-center justify-center space-x-2">
+                            <span>Mulai Kuis Sekarang</span>
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition duration-200"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2. QUIZ SCREEN ================= -->
+        <section id="quizScreen" class="w-full glass-panel rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden hidden transition-all duration-500">
+            
+            <!-- Top Quiz Header Info -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <!-- Question Counter & Combo Badge -->
+                <div class="flex items-center space-x-3">
+                    <span id="questionCounter" class="text-sm font-bold tracking-wide text-cyan-400 bg-cyan-950/80 px-3 py-1.5 rounded-xl border border-cyan-500/30">
+                        Soal 1 dari 15
+                    </span>
+                    <span id="streakBadge" class="hidden text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2.5 py-1 rounded-xl items-center space-x-1 animate-pulse">
+                        <i class="fa-solid fa-fire text-amber-400"></i>
+                        <span id="streakText">Combo 2x!</span>
+                    </span>
+                </div>
+
+                <!-- Live Score & Circular Timer -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Skor Kamu</p>
+                        <p id="liveScore" class="text-lg font-extrabold text-cyan-300">0</p>
+                    </div>
+
+                    <!-- Circular Timer Graphic -->
+                    <div class="relative w-11 h-11 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90">
+                            <circle cx="22" cy="22" r="18" stroke="currentColor" stroke-width="3" class="text-slate-800" fill="transparent" />
+                            <circle id="timerCircle" cx="22" cy="22" r="18" stroke="currentColor" stroke-width="3" 
+                                class="text-cyan-400 transition-all duration-1000 ease-linear" 
+                                fill="transparent" 
+                                stroke-dasharray="113.097" 
+                                stroke-dashoffset="0" 
+                                stroke-linecap="round" />
+                        </svg>
+                        <span id="timerText" class="absolute font-bold text-xs text-slate-100">25</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Progress Bar -->
+            <div class="w-full bg-slate-800/60 rounded-full h-2 my-4 overflow-hidden border border-slate-700/50">
+                <div id="progressBar" class="bg-gradient-to-r from-cyan-400 to-purple-500 h-full rounded-full transition-all duration-300" style="width: 6.66%;"></div>
+            </div>
+
+            <!-- Question Card Container -->
+            <div id="questionContainer" class="py-2 transition-all duration-300">
+                <h3 id="questionText" class="text-lg sm:text-xl font-bold text-slate-100 leading-snug mb-6">
+                    Memuat pertanyaan...
+                </h3>
+
+                <!-- Options List (A, B, C, D) -->
+                <div id="optionsContainer" class="grid grid-cols-1 gap-3">
+                    <!-- Option items will be generated by JS -->
+                </div>
+            </div>
+
+            <!-- Feedback / Explanation Panel (Hidden initially) -->
+            <div id="feedbackPanel" class="mt-5 p-4 rounded-2xl glass-card border border-cyan-500/20 hidden transition-all duration-300">
+                <div class="flex items-start space-x-3">
+                    <div id="feedbackIcon" class="mt-0.5 text-xl"></div>
+                    <div class="flex-grow">
+                        <p id="feedbackTitle" class="font-bold text-sm mb-1"></p>
+                        <p id="feedbackExplanation" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Controls -->
+            <div class="mt-6 pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                <div class="text-xs text-slate-400 flex items-center space-x-1">
+                    <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                    <span>Pilih satu jawaban terbaik</span>
+                </div>
+                
+                <button id="nextBtn" onclick="handleNextQuestion()" disabled
+                    class="px-6 py-3 rounded-xl font-bold text-sm bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed transition duration-200 flex items-center space-x-2">
+                    <span id="nextBtnText">Soal Berikutnya</span>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= 3. RESULT SCREEN ================= -->
+        <section id="resultScreen" class="w-full glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden hidden transition-all duration-500">
+            <!-- Decorative Background glow -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center space-y-6 relative z-10">
+                <!-- Result Badge / Header -->
+                <div class="space-y-2">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 text-cyan-300 text-3xl mb-2 shadow-inner">
+                        <i id="resultBadgeIcon" class="fa-solid fa-trophy text-amber-400 floating-element"></i>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100">
+                        Hasil Kuis Kamu
+                    </h2>
+                    <p id="playerGreeting" class="text-slate-400 text-sm">
+                        Hebat sekali telah menyelesaikan tantangan!
+                    </p>
+                </div>
+
+                <!-- Final Score Card Banner -->
+                <div class="glass-card rounded-2xl p-6 border border-cyan-500/30 max-w-lg mx-auto relative overflow-hidden">
+                    <div class="grid grid-cols-3 gap-2 divide-x divide-slate-700/60 text-center">
+                        <div>
+                            <p class="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Total Skor</p>
+                            <p id="finalScore" class="text-2xl sm:text-3xl font-black text-cyan-400 mt-1">0</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Akurasi</p>
+                            <p id="finalAccuracy" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">0%</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Benar / Salah</p>
+                            <p id="correctWrongRatio" class="text-xl sm:text-2xl font-extrabold text-purple-300 mt-1">0/0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivational Box -->
+                <div class="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/20 max-w-lg mx-auto">
+                    <p id="motivationalMessage" class="text-sm text-cyan-200 font-medium">
+                        "Terus tingkatkan pengetahuan teknologimu!"
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto pt-2">
+                    <button onclick="restartQuiz()" class="w-full sm:w-auto flex-1 py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-cyan-500 to-purple-600 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/25 transition duration-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Main Lagi</span>
+                    </button>
+                    <button onclick="toggleReviewModal(true)" class="w-full sm:w-auto flex-1 py-3.5 px-6 rounded-xl font-bold text-sm glass-card hover:bg-slate-800 text-slate-200 border border-slate-700 tran
