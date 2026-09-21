@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis AI dan Teknologi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .option-btn {
+            transition: all 0.2s;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .correct {
+            background-color: #22c55e !important; /* Green */
+            color: white !important;
+            border-color: #22c55e !important;
+        }
+        .incorrect {
+            background-color: #ef4444 !important; /* Red */
+            color: white !important;
+            border-color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app-container" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden fade-in">
+        
+        <!-- Header -->
+        <div class="bg-green-600 text-white p-6 text-center">
+            <h1 class="text-3xl font-bold mb-2">Kuis AI & Teknologi</h1>
+            <p class="text-green-100">Uji pengetahuanmu tentang kecerdasan buatan!</p>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="p-8 text-center">
+            <div class="mb-8">
+                <svg class="w-24 h-24 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Siap untuk mulai?</h2>
+                <p class="text-gray-600">Ada 15 pertanyaan pilihan ganda menantimu.</p>
+            </div>
+            <button onclick="startQuiz()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all">
+                Mulai Kuis
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="p-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-sm font-semibold text-green-600 bg-green-100 py-1 px-3 rounded-full">
+                    Pertanyaan <span id="current-question">1</span>/15
+                </span>
+                <span class="text-sm font-semibold text-gray-600">
+                    Skor: <span id="score-display">0</span>
+                </span>
+            </div>
+            
+            <div class="mb-8">
+                <h2 id="question-text" class="text-xl font-semibold text-gray-800 leading-relaxed">
+                    Pertanyaan akan muncul di sini.
+                </h2>
+            </div>
+
+            <div id="options-container" class="space-y-3">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" onclick="nextQuestion()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
+                    Selanjutnya &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="p-8 text-center hidden">
+            <div class="mb-8">
+                <div id="score-icon" class="text-6xl mb-4">🏆</div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Kuis Selesai!</h2>
+                <p class="text-gray-600 mb-6">Inilah hasil akhir kamu:</p>
+                
+                <div class="bg-gray-50 rounded-xl p-6 inline-block w-full max-w-sm">
+                    <div class="text-5xl font-bold text-green-500 mb-2">
+                        <span id="final-score">0</span><span class="text-2xl text-gray-400">/15</span>
+                    </div>
+                    <p id="score-message" class="text-gray-700 font-medium"></p>
+                </div>
+            </div>
+            
+            <button onclick="restartQuiz()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all mr-2">
+                Coba Lagi
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Apa yang dimaksud dengan AI?",
+                options: [
+                    "Alat untuk mencetak dokumen",
+                    "Kecerdasan buatan yang dapat melakukan tugas tertentu seperti manusia",
+                    "Jaringan listrik",
+                    "Sistem untuk menyimpan makanan"
+                ],
+                correct: 1 // Index 1 is B
+            },
+            {
+                question: "Contoh penggunaan AI dalam kehidupan sehari-hari adalah...",
+                options: [
+                    "Kipas angin manual",
+                    "Buku tulis",
+                    "Asisten virtual pada ponsel",
+                    "Pensil"
+                ],
+                correct: 2 // Index 2 is C
+            },
+            {
+                question: "Kepanjangan dari AI adalah...",
+                options: [
+                    "Automatic Internet",
+                    "Artificial Intelligence",
+                    "Advanced Information",
+                    "Application Interface"
+                ],
+                correct: 1
+            },
+            {
+                question: "Teknologi yang digunakan untuk menghubungkan komputer dan perangkat melalui jaringan disebut...",
+                options: [
+                    "Internet",
+                    "Keyboard",
+                    "Printer",
+                    "Scanner"
+                ],
+                correct: 0
+            },
+            {
+                question: "Salah satu manfaat teknologi dalam bidang pendidikan adalah...",
+                options: [
+                    "Memudahkan mencari informasi dan belajar",
+                    "Mengurangi sumber pengetahuan",
+                    "Membuat siswa tidak perlu belajar",
+                    "Menghilangkan sekolah"
+                ],
+                correct: 0
+            },
+            {
+                question: "Chatbot adalah teknologi yang dapat...",
+                options: [
+                    "Mencetak makanan",
+                    "Berkomunikasi dengan pengguna melalui percakapan",
+                    "Mencuci pakaian",
+                    "Mengisi bahan bakar kendaraan"
+                ],
+                correct: 1
+            },
+            {
+                question: "Contoh perangkat teknologi yang digunakan untuk mengambil gambar adalah...",
+                options: [
+                    "Kamera",
+                    "Speaker",
+                    "Keyboard",
+                    "Router"
+                ],
+                correct: 0
+            },
+            {
+                question: "AI dapat membantu dokter dengan cara...",
+                options: [
+                    "Menggantikan semua dokter",
+                    "Membantu menganalisis data dan gambar medis",
+                    "Membuat alat tanpa pemeriksaan",
+                    "Menghilangkan kebutuhan rumah sakit"
+                ],
+                correct: 1
+            },
+            {
+                question: "Data yang digunakan AI untuk belajar disebut...",
+                options: [
+                    "Data latihan",
+                    "Data kosong",
+                    "Data listrik",
+                    "Data suara saja"
+                ],
+                correct: 0
+            },
+            {
+                question: "Salah satu dampak positif teknologi komunikasi adalah...",
+                options: [
+                    "Mempercepat komunikasi jarak jauh",
+                    "Membuat komunikasi semakin sulit",
+                    "Memperlambat internet",
+                    "Membatasi pertukaran informasi"
+                ],
+                correct: 0
+            },
+            {
+                question: "Teknologi yang memungkinkan komputer mengenali wajah disebut...",
+                options: [
+                    "Pengenalan wajah",
+                    "Pengeditan data",
+                    "Pencetakan 3D",
+                    "Penyimpanan gambar"
+                ],
+                correct: 0
+            },
+            {
+                question: "Salah satu hal yang harus diperhatikan ketika menggunakan AI adalah...",
+                options: [
+                    "Selalu mempercayai semua jawaban AI",
+                    "Memeriksa kebenaran informasi yang diberikan AI",
+                    "Memberikan data pribadi kepada siapa saja",
+                    "Menggunakan AI tanpa aturan"
+                ],
+                correct: 1
+            },
+            {
+                question: "Contoh teknologi yang dapat membantu navigasi adalah...",
+                options: [
+                    "GPS",
+                    "Kalkulator",
+                    "Printer",
+                    "Mikrofon"
+                ],
+                correct: 0
+            },
+            {
+                question: "Mengapa kita harus menggunakan teknologi secara bijak?",
+                options: [
+                    "Agar teknologi memberikan manfaat dan tidak disalahgunakan",
+                    "Agar tidak bisa belajar",
+                    "Agar internet menjadi lebih lambat",
+                    "Agar perangkat cepat rusak"
+                ],
+                correct: 0
+            },
+            {
+                question: "Manakah yang merupakan contoh kecerdasan buatan?",
+                options: [
+                    "Sistem rekomendasi video berdasarkan kebiasaan pengguna",
+                    "Penggaris",
+                    "Meja belajar",
+                    "Buku cetak"
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const scoreDisplaySpan = document.getElementById('score-display');
+        const nextBtn = document.getElementById('next-btn');
+        const finalScoreSpan = document.getElementById('final-score');
+        const scoreMessage = document.getElementById('score-message');
+        const scoreIcon = document.getElementById('score-icon');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            nextBtn.classList.add('hidden');
+            
+            const currentQ = quizData[currentQuestionIndex];
+            
+            // Animasi transisi
+            quizScreen.classList.remove('fade-in');
+            void quizScreen.offsetWidth; // trigger reflow
+            quizScreen.classList.add('fade-in');
+
+            currentQuestionSpan.textContent = currentQuestionIndex + 1;
+            scoreDisplaySpan.textContent = score;
+            questionText.textContent = `${currentQuestionIndex + 1}. ${currentQ.question}`;
+            
+            optionsContainer.innerHTML = '';
+            
+            const labels = ['A', 'B', 'C', 'D'];
+
+            currentQ.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-green-400 bg-white text-gray-700 font-medium flex items-center';
+                
+                button.innerHTML = `
+                    <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-4 text-gray-600 font-bold shrink-0">
+                        ${labels[index]}
+                    </span>
+                    <span>${option}</span>
+                `;
+                
+                button.onclick = () => selectOption(index, button, labels);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectOption(selectedIndex, selectedButton, labels) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const currentQ = quizData[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('button');
+            const isCorrect = selectedIndex === currentQ.correct;
+
+            if (isCorrect) {
+                score++;
+                scoreDisplaySpan.textContent = score;
+                selectedButton.classList.add('correct');
+            } else {
+                selectedButton.classList.add('incorrect');
+                // Highlight correct answer
+                buttons[currentQ.correct].classList.add('correct');
+            }
+
+            // Disable all buttons and update styles
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-green-400');
+                if (index !== currentQ.correct && index !== selectedIndex) {
+                    btn.classList.add('opacity-50');
+                }
+                
+                // Update badge style based on correctness
+                const badge = btn.querySelector('span');
+                if (btn.classList.contains('correct') || btn.classList.contains('incorrect')) {
+                   badge.classList.remove('bg-gray-100', 'text-gray-600');
+                   badge.classList.add('bg-white', btn.classList.contains('correct') ? 'text-green-600' : 'text-red-600');
+                }
+            });
+
+            nextBtn.classList.remove('hidden');
+            
+            // Change button text if it's the last question
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.innerHTML = 'Lihat Hasil &rarr;';
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            resultScreen.classList.add('fade-in');
+            
+            finalScoreSpan.textContent = score;
+            
+            let message = '';
+            let icon = '🏆';
+            if (score === 15) {
+                message = 'Sempurna! Kamu sangat paham tentang AI dan Teknologi.';
+                icon = '🌟';
+            } else if (score >= 10) {
+                message = 'Bagus sekali! Pengetahuanmu sudah sangat baik.';
+                icon = '👏';
+            } else if (score >= 5) {
+                message = 'Lumayan! Terus belajar tentang perkembangan teknologi ya.';
+                icon = '👍';
+            } else {
+                message = 'Jangan menyerah! Ayo pelajari lebih lanjut tentang AI.';
+                icon = '📚';
+            }
+            
+            scoreMessage.textContent = message;
+            scoreIcon.textContent = icon;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            nextBtn.innerHTML = 'Selanjutnya &rarr;';
+        }
+    </script>
+</body>
+  </html>
