@@ -3,408 +3,784 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis AI dan Teknologi</title>
+    <title>Quiz AI - MTS DDI Kel (Modern Edition)</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0fdf4; /* Light green background */
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.25) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.25) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(14, 165, 233, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #f8fafc;
+            overflow-x: hidden;
         }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
         .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        .slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .option-btn {
-            transition: all 0.2s;
+
+        .option-label {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
         }
-        .option-btn:hover:not(:disabled) {
+
+        .option-label:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .correct {
-            background-color: #22c55e !important; /* Green */
-            color: white !important;
-            border-color: #22c55e !important;
+
+        .option-input:checked + .option-content {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            border-color: #818cf8;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
         }
-        .incorrect {
-            background-color: #ef4444 !important; /* Red */
-            color: white !important;
-            border-color: #ef4444 !important;
+
+        .option-input:checked + .option-content .option-letter {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
         }
+
+        /* Toast notification */
+        #toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .toast {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            color: #f8fafc;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateX(120%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 4px solid #ef4444;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-left-width: 4px;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.success { border-left-color: #10b981; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+        
+        .hidden-view { display: none !important; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
 
-    <div id="app-container" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden fade-in">
-        
-        <!-- Header -->
-        <div class="bg-green-600 text-white p-6 text-center">
-            <h1 class="text-3xl font-bold mb-2">Kuis AI & Teknologi</h1>
-            <p class="text-green-100">Uji pengetahuanmu tentang kecerdasan buatan!</p>
-        </div>
+    <div id="toast-container"></div>
 
-        <!-- Start Screen -->
-        <div id="start-screen" class="p-8 text-center">
-            <div class="mb-8">
-                <svg class="w-24 h-24 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Siap untuk mulai?</h2>
-                <p class="text-gray-600">Ada 15 pertanyaan pilihan ganda menantimu.</p>
+    <!-- LOGIN VIEW -->
+    <div id="view-login" class="w-full max-w-md slide-up">
+        <div class="glass-panel p-8 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-500/30 mb-4 transform hover:scale-105 transition-transform duration-300">
+                    <i class="fa-solid fa-brain text-3xl"></i>
+                </div>
+                <span class="text-xs font-bold tracking-widest uppercase text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">MTS DDI Kel</span>
+                <h1 class="text-2xl font-extrabold text-white mt-3">Quiz AI Interaktif</h1>
+                <p class="text-slate-400 text-sm mt-1">Uji pemahamanmu tentang Artificial Intelligence</p>
             </div>
-            <button onclick="startQuiz()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all">
-                Mulai Kuis
-            </button>
-        </div>
 
-        <!-- Quiz Screen -->
-        <div id="quiz-screen" class="p-8 hidden">
-            <div class="flex justify-between items-center mb-6">
-                <span class="text-sm font-semibold text-green-600 bg-green-100 py-1 px-3 rounded-full">
-                    Pertanyaan <span id="current-question">1</span>/15
-                </span>
-                <span class="text-sm font-semibold text-gray-600">
-                    Skor: <span id="score-display">0</span>
-                </span>
+            <div class="space-y-5 relative z-10">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Pilih Peran Akses</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="peserta" checked class="peer sr-only">
+                            <div class="p-3.5 text-center rounded-xl border border-slate-700 bg-slate-800/50 peer-checked:bg-gradient-to-r peer-checked:from-indigo-600 peer-checked:to-violet-600 peer-checked:border-indigo-500 peer-checked:shadow-lg peer-checked:shadow-indigo-500/25 transition duration-200 text-sm font-semibold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-user-graduate"></i> Peserta
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="admin" class="peer sr-only">
+                            <div class="p-3.5 text-center rounded-xl border border-slate-700 bg-slate-800/50 peer-checked:bg-gradient-to-r peer-checked:from-indigo-600 peer-checked:to-violet-600 peer-checked:border-indigo-500 peer-checked:shadow-lg peer-checked:shadow-indigo-500/25 transition duration-200 text-sm font-semibold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-shield-halved"></i> Admin
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="username" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nama Lengkap / ID</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                            <i class="fa-regular fa-user"></i>
+                        </span>
+                        <input type="text" id="username" class="glass-input w-full pl-11 pr-4 py-3 rounded-xl outline-none text-sm font-medium" placeholder="Contoh: Ahmad Fauzan">
+                    </div>
+                </div>
+
+                <div id="password-field" class="hidden">
+                    <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password Admin</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="password" class="glass-input w-full pl-11 pr-4 py-3 rounded-xl outline-none text-sm font-medium" placeholder="Masukkan password admin">
+                    </div>
+                </div>
+
+                <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-300 transform hover:-translate-y-0.5 text-sm">
+                    Masuk ke Portal <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
             </div>
             
-            <div class="mb-8">
-                <h2 id="question-text" class="text-xl font-semibold text-gray-800 leading-relaxed">
-                    Pertanyaan akan muncul di sini.
-                </h2>
+            <div class="mt-6 text-center text-xs text-slate-500 border-t border-slate-800/80 pt-4">
+                <p>Hint Admin: user <b>admin</b> | pass <b>admin123</b></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PESERTA DASHBOARD VIEW -->
+    <div id="view-peserta-dashboard" class="w-full max-w-2xl hidden-view slide-up">
+        <div class="glass-panel p-6 md:p-8 relative">
+            <div class="flex justify-between items-center mb-8 border-b border-slate-700/60 pb-5">
+                <div>
+                    <span class="text-xs font-extrabold tracking-widest text-indigo-400 uppercase bg-indigo-500/10 px-3 py-1 rounded-full">MTS DDI Kel</span>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-white mt-2">Dashboard Peserta</h1>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/40 hover:border-red-500/50 text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar
+                </button>
             </div>
 
-            <div id="options-container" class="space-y-3">
-                <!-- Options will be injected here -->
+            <div class="bg-gradient-to-r from-indigo-900/40 via-violet-900/30 to-slate-900/40 border border-indigo-500/20 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row items-center gap-6">
+                <div class="w-18 h-18 w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-500/30 flex-shrink-0">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div class="text-center sm:text-left">
+                    <h3 class="text-xl font-bold text-white">Selamat datang, <span id="display-peserta-name" class="text-indigo-400">Peserta</span>!</h3>
+                    <p class="text-slate-400 text-sm mt-1">Siap menguji sejauh mana penguasaan materi kecerdasan buatanmu?</p>
+                </div>
             </div>
 
-            <div class="mt-8 flex justify-end">
-                <button id="next-btn" onclick="nextQuestion()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
-                    Selanjutnya &rarr;
+            <!-- Skor Dashboard Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                <div class="border border-slate-700/60 rounded-2xl p-6 bg-slate-900/40 flex flex-col justify-center items-center text-center">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">Nilai Ujian Terakhir</p>
+                    <div id="last-score-display" class="text-5xl font-extrabold text-white">
+                        -
+                    </div>
+                </div>
+                <div class="border border-slate-700/60 rounded-2xl p-6 bg-slate-900/40 flex flex-col justify-between">
+                    <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-circle-info text-indigo-400"></i> Ketentuan Ujian
+                    </h4>
+                    <ul class="space-y-2 text-xs text-slate-300">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-400"></i> Total Soal: <b>15 Pilihan Ganda</b></li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-400"></i> Waktu Pengerjaan: <b>Fleksibel</b></li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-400"></i> Kunci jawaban & skor muncul <b>di akhir sesi</b></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="startQuiz()" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-4 px-10 rounded-2xl shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] transition-all duration-300 text-base">
+                    <i class="fa-solid fa-rocket mr-2"></i> Mulai Kuis Sekarang
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Result Screen -->
-        <div id="result-screen" class="p-8 text-center hidden">
-            <div class="mb-8">
-                <div id="score-icon" class="text-6xl mb-4">🏆</div>
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">Kuis Selesai!</h2>
-                <p class="text-gray-600 mb-6">Inilah hasil akhir kamu:</p>
-                
-                <div class="bg-gray-50 rounded-xl p-6 inline-block w-full max-w-sm">
-                    <div class="text-5xl font-bold text-green-500 mb-2">
-                        <span id="final-score">0</span><span class="text-2xl text-gray-400">/15</span>
-                    </div>
-                    <p id="score-message" class="text-gray-700 font-medium"></p>
+    <!-- QUIZ VIEW -->
+    <div id="view-quiz" class="w-full max-w-3xl hidden-view slide-up">
+        <div class="glass-panel p-6 md:p-10">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700/60">
+                <span class="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-3.5 py-1.5 rounded-full border border-indigo-500/20">MTS DDI Kel</span>
+                <div class="text-xs md:text-sm font-semibold text-slate-300 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                    Pertanyaan <span id="current-q-num" class="font-extrabold text-indigo-400 text-base">1</span> / 15
                 </div>
             </div>
-            
-            <button onclick="restartQuiz()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all mr-2">
-                Coba Lagi
-            </button>
-        </div>
 
+            <div class="mb-8">
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800 rounded-full h-2.5 mb-6 overflow-hidden border border-slate-700/50">
+                    <div id="quiz-progress" class="bg-gradient-to-r from-indigo-500 to-violet-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                
+                <!-- Question -->
+                <h3 id="question-text" class="text-xl md:text-2xl font-bold text-white leading-snug">
+                    Memuat pertanyaan...
+                </h3>
+            </div>
+
+            <!-- Options -->
+            <div id="options-container" class="space-y-3.5 mb-8">
+                <!-- Options injected via JS -->
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-700/60">
+                <button id="btn-next" onclick="nextQuestion()" class="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center group text-sm">
+                    <span id="btn-next-text">Selanjutnya</span>
+                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <div id="view-result" class="w-full max-w-4xl hidden-view fade-in">
+        <div class="glass-panel p-6 md:p-10">
+            <div class="text-center mb-8">
+                <span class="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">Evaluasi Selesai</span>
+                <h2 class="text-3xl font-extrabold text-white mt-2 mb-1">Hasil Ujian Kamu</h2>
+                <p class="text-slate-400 text-sm">Berikut rincian skor serta pembahasan lengkap setiap soal.</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-8 mb-10 items-center justify-center bg-slate-900/50 p-6 md:p-8 rounded-2xl border border-slate-700/60">
+                <div class="relative w-40 h-40 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path id="score-circle" class="text-indigo-500 transition-all duration-1000 ease-out" stroke-dasharray="0, 100" stroke-width="3.5" stroke="currentColor" fill="none" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="absolute text-center">
+                        <span id="final-score" class="text-4xl font-extrabold text-white">0</span>
+                        <span class="block text-xs text-slate-400 font-semibold uppercase tracking-wider">Skor Akhir</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 w-full md:w-auto flex-1">
+                    <div class="p-5 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20 text-center flex flex-col justify-center">
+                        <i class="fa-solid fa-circle-check text-2xl mb-2"></i>
+                        <p class="text-xs font-semibold text-emerald-300 uppercase tracking-wider">Jawaban Benar</p>
+                        <p id="correct-count" class="text-3xl font-extrabold mt-1">0</p>
+                    </div>
+                    <div class="p-5 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 text-center flex flex-col justify-center">
+                        <i class="fa-solid fa-circle-xmark text-2xl mb-2"></i>
+                        <p class="text-xs font-semibold text-rose-300 uppercase tracking-wider">Jawaban Salah</p>
+                        <p id="wrong-count" class="text-3xl font-extrabold mt-1">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Answers Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-bold text-white mb-4 pb-2 border-b border-slate-700/60 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-400"></i> Pembahasan & Kunci Jawaban
+                </h3>
+                <div id="review-container" class="space-y-4 max-h-[420px] overflow-y-auto pr-2">
+                    <!-- Review injected here -->
+                </div>
+            </div>
+
+            <div class="text-center pt-6 border-t border-slate-700/60">
+                <button onclick="returnToDashboard()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 px-8 rounded-xl border border-slate-700 transition shadow text-sm">
+                    Kembali ke Dashboard Utama
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD VIEW -->
+    <div id="view-admin-dashboard" class="w-full max-w-5xl hidden-view slide-up">
+        <div class="glass-panel p-6 md:p-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-slate-700/60 pb-6 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-500/30">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-white">Panel Administrator</h1>
+                        <p class="text-slate-400 text-xs mt-0.5">Rekapitulasi Nilai & Hasil Ujian Peserta MTS DDI Kel</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition bg-slate-800/80 py-2 px-4 rounded-xl border border-slate-700 hover:border-red-500/50 font-medium text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar
+                </button>
+            </div>
+
+            <div class="bg-slate-900/50 rounded-2xl border border-slate-700/60 overflow-hidden">
+                <div class="p-4 md:p-5 border-b border-slate-700/60 bg-slate-900/80 flex justify-between items-center">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users-rectangle text-indigo-400"></i> Daftar Nilai Peserta
+                    </h3>
+                    <button onclick="clearData()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg transition">
+                        <i class="fa-solid fa-trash mr-1.5"></i> Reset Data
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs tracking-wider font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="px-6 py-4">No</th>
+                                <th class="px-6 py-4">Nama Peserta</th>
+                                <th class="px-6 py-4">Waktu Ujian</th>
+                                <th class="px-6 py-4 text-center">Benar</th>
+                                <th class="px-6 py-4 text-center">Skor Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-slate-800 bg-slate-900/30">
+                            <!-- Table rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="admin-empty-state" class="text-center p-12 hidden text-slate-500">
+                    <i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-600"></i>
+                    <p class="text-sm">Belum ada data peserta yang menyelesaikan kuis.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const quizData = [
+        const questions = [
             {
-                question: "Apa yang dimaksud dengan AI?",
-                options: [
-                    "Alat untuk mencetak dokumen",
-                    "Kecerdasan buatan yang dapat melakukan tugas tertentu seperti manusia",
-                    "Jaringan listrik",
-                    "Sistem untuk menyimpan makanan"
-                ],
-                correct: 1 // Index 1 is B
+                q: "AI merupakan singkatan dari ....",
+                options: ["Automatic Internet", "Advanced Information", "Artificial Intelligence", "Application Internet"],
+                ans: 2
             },
             {
-                question: "Contoh penggunaan AI dalam kehidupan sehari-hari adalah...",
-                options: [
-                    "Kipas angin manual",
-                    "Buku tulis",
-                    "Asisten virtual pada ponsel",
-                    "Pensil"
-                ],
-                correct: 2 // Index 2 is C
+                q: "Salah satu contoh penggunaan AI dalam kehidupan sehari-hari adalah ....",
+                options: ["Asisten virtual pada ponsel", "Buku tulis", "Pensil", "Penghapus"],
+                ans: 0
             },
             {
-                question: "Kepanjangan dari AI adalah...",
-                options: [
-                    "Automatic Internet",
-                    "Artificial Intelligence",
-                    "Advanced Information",
-                    "Application Interface"
-                ],
-                correct: 1
+                q: "Teknologi yang digunakan untuk mengenali wajah seseorang disebut ....",
+                options: ["Cloud storage", "Face recognition", "Spreadsheet", "Bluetooth"],
+                ans: 1
             },
             {
-                question: "Teknologi yang digunakan untuk menghubungkan komputer dan perangkat melalui jaringan disebut...",
-                options: [
-                    "Internet",
-                    "Keyboard",
-                    "Printer",
-                    "Scanner"
-                ],
-                correct: 0
+                q: "Chatbot adalah teknologi yang dapat ....",
+                options: ["Mengisi baterai secara otomatis", "Mencetak buku", "Menggantikan jaringan internet", "Berkomunikasi dengan pengguna melalui percakapan"],
+                ans: 3
             },
             {
-                question: "Salah satu manfaat teknologi dalam bidang pendidikan adalah...",
-                options: [
-                    "Memudahkan mencari informasi dan belajar",
-                    "Mengurangi sumber pengetahuan",
-                    "Membuat siswa tidak perlu belajar",
-                    "Menghilangkan sekolah"
-                ],
-                correct: 0
+                q: "Salah satu manfaat AI dalam bidang pendidikan adalah ....",
+                options: ["Membantu siswa memahami materi pembelajaran", "Menghilangkan kebutuhan belajar", "Membuat semua siswa mendapat nilai yang sama", "Menggantikan seluruh guru"],
+                ans: 0
             },
             {
-                question: "Chatbot adalah teknologi yang dapat...",
-                options: [
-                    "Mencetak makanan",
-                    "Berkomunikasi dengan pengguna melalui percakapan",
-                    "Mencuci pakaian",
-                    "Mengisi bahan bakar kendaraan"
-                ],
-                correct: 1
+                q: "Contoh teknologi yang menggunakan AI untuk memberikan rekomendasi adalah ....",
+                options: ["Kalkulator biasa", "Jam dinding", "Platform video yang merekomendasikan tontonan", "Penggaris"],
+                ans: 2
             },
             {
-                question: "Contoh perangkat teknologi yang digunakan untuk mengambil gambar adalah...",
-                options: [
-                    "Kamera",
-                    "Speaker",
-                    "Keyboard",
-                    "Router"
-                ],
-                correct: 0
+                q: "Data yang digunakan AI untuk belajar dan menghasilkan pola disebut ....",
+                options: ["Kabel", "Perangkat keras", "Listrik", "Data pelatihan"],
+                ans: 3
             },
             {
-                question: "AI dapat membantu dokter dengan cara...",
-                options: [
-                    "Menggantikan semua dokter",
-                    "Membantu menganalisis data dan gambar medis",
-                    "Membuat alat tanpa pemeriksaan",
-                    "Menghilangkan kebutuhan rumah sakit"
-                ],
-                correct: 1
+                q: "Salah satu risiko penggunaan AI adalah ....",
+                options: ["Komputer menjadi lebih ringan", "Penyalahgunaan informasi atau data pribadi", "Layar menjadi lebih besar", "Internet menjadi selalu gratis"],
+                ans: 1
             },
             {
-                question: "Data yang digunakan AI untuk belajar disebut...",
-                options: [
-                    "Data latihan",
-                    "Data kosong",
-                    "Data listrik",
-                    "Data suara saja"
-                ],
-                correct: 0
+                q: "Teknologi AI yang dapat mengubah perintah teks menjadi gambar disebut ....",
+                options: ["Text-to-image", "Keyboard", "Scanner", "Printer"],
+                ans: 0
             },
             {
-                question: "Salah satu dampak positif teknologi komunikasi adalah...",
-                options: [
-                    "Mempercepat komunikasi jarak jauh",
-                    "Membuat komunikasi semakin sulit",
-                    "Memperlambat internet",
-                    "Membatasi pertukaran informasi"
-                ],
-                correct: 0
+                q: "Sikap yang tepat saat menggunakan AI untuk mengerjakan tugas sekolah adalah ....",
+                options: ["Menyalin semua jawaban tanpa memahami", "Menggunakan AI untuk menipu", "Menggunakan AI sebagai alat bantu belajar dan memeriksa kembali informasi", "Membiarkan AI mengerjakan seluruh tugas"],
+                ans: 2
             },
             {
-                question: "Teknologi yang memungkinkan komputer mengenali wajah disebut...",
-                options: [
-                    "Pengenalan wajah",
-                    "Pengeditan data",
-                    "Pencetakan 3D",
-                    "Penyimpanan gambar"
-                ],
-                correct: 0
+                q: "Contoh penerapan AI dalam bidang kesehatan adalah ....",
+                options: ["Membuat meja rumah sakit", "Membantu menganalisis gambar hasil pemeriksaan medis", "Mengganti semua dokter", "Membuat seragam pasien"],
+                ans: 1
             },
             {
-                question: "Salah satu hal yang harus diperhatikan ketika menggunakan AI adalah...",
-                options: [
-                    "Selalu mempercayai semua jawaban AI",
-                    "Memeriksa kebenaran informasi yang diberikan AI",
-                    "Memberikan data pribadi kepada siapa saja",
-                    "Menggunakan AI tanpa aturan"
-                ],
-                correct: 1
+                q: "Keamanan akun dapat ditingkatkan dengan menggunakan ....",
+                options: ["Kata sandi yang mudah ditebak", "Kata sandi yang sama untuk semua akun", "Membagikan password kepada teman", "Kata sandi yang kuat dan autentikasi dua faktor"],
+                ans: 3
             },
             {
-                question: "Contoh teknologi yang dapat membantu navigasi adalah...",
-                options: [
-                    "GPS",
-                    "Kalkulator",
-                    "Printer",
-                    "Mikrofon"
-                ],
-                correct: 0
+                q: "AI dapat bekerja dengan baik apabila diberikan ....",
+                options: ["Data dan instruksi yang sesuai", "Kabel yang panjang", "Layar yang besar", "Mouse yang mahal"],
+                ans: 0
             },
             {
-                question: "Mengapa kita harus menggunakan teknologi secara bijak?",
-                options: [
-                    "Agar teknologi memberikan manfaat dan tidak disalahgunakan",
-                    "Agar tidak bisa belajar",
-                    "Agar internet menjadi lebih lambat",
-                    "Agar perangkat cepat rusak"
-                ],
-                correct: 0
+                q: "Deepfake adalah teknologi yang dapat digunakan untuk ....",
+                options: ["Mempercepat koneksi Wi-Fi", "Membersihkan virus komputer", "Membuat atau memanipulasi video dan audio menggunakan AI", "Menghemat baterai ponsel"],
+                ans: 2
             },
             {
-                question: "Manakah yang merupakan contoh kecerdasan buatan?",
-                options: [
-                    "Sistem rekomendasi video berdasarkan kebiasaan pengguna",
-                    "Penggaris",
-                    "Meja belajar",
-                    "Buku cetak"
-                ],
-                correct: 0
+                q: "Tujuan utama menggunakan teknologi AI secara bertanggung jawab adalah ....",
+                options: ["Menggunakan AI tanpa aturan", "Menggantikan semua pekerjaan manusia", "Membagikan semua data pribadi kepada AI", "Mendapatkan manfaat teknologi dengan tetap memperhatikan keamanan dan etika"],
+                ans: 3
             }
         ];
 
+        let currentUser = null; 
         let currentQuestionIndex = 0;
-        let score = 0;
-        let isAnswered = false;
+        let userAnswers = [];
+        let allUsersData = JSON.parse(localStorage.getItem('quiz_users_data_modern')) || [];
 
-        const startScreen = document.getElementById('start-screen');
-        const quizScreen = document.getElementById('quiz-screen');
-        const resultScreen = document.getElementById('result-screen');
-        const questionText = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options-container');
-        const currentQuestionSpan = document.getElementById('current-question');
-        const scoreDisplaySpan = document.getElementById('score-display');
-        const nextBtn = document.getElementById('next-btn');
-        const finalScoreSpan = document.getElementById('final-score');
-        const scoreMessage = document.getElementById('score-message');
-        const scoreIcon = document.getElementById('score-icon');
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-exclamation text-rose-400'} mr-2"></i> ${message}`;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 350);
+            }, 3000);
+        }
+
+        function switchView(viewId) {
+            const views = ['view-login', 'view-peserta-dashboard', 'view-quiz', 'view-result', 'view-admin-dashboard'];
+            views.forEach(v => {
+                document.getElementById(v).classList.add('hidden-view');
+            });
+            
+            const targetView = document.getElementById(viewId);
+            targetView.classList.remove('hidden-view');
+            
+            targetView.style.animation = 'none';
+            targetView.offsetHeight; 
+            targetView.style.animation = null; 
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        const roleRadios = document.querySelectorAll('input[name="role"]');
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const passField = document.getElementById('password-field');
+                if (e.target.value === 'admin') {
+                    passField.classList.remove('hidden');
+                } else {
+                    passField.classList.add('hidden');
+                }
+            });
+        });
+
+        function handleLogin() {
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username) {
+                showToast("Nama tidak boleh kosong!");
+                return;
+            }
+
+            if (role === 'admin') {
+                if (username === 'admin' && password === 'admin123') {
+                    currentUser = { role: 'admin', name: 'Administrator' };
+                    initAdminDashboard();
+                } else {
+                    showToast("Username atau password admin salah!");
+                }
+            } else {
+                currentUser = { role: 'peserta', name: username };
+                initPesertaDashboard();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.querySelector('input[value="peserta"]').checked = true;
+            document.getElementById('password-field').classList.add('hidden');
+            switchView('view-login');
+        }
+
+        function initPesertaDashboard() {
+            document.getElementById('display-peserta-name').textContent = currentUser.name;
+            
+            const existingData = allUsersData.filter(u => u.name.toLowerCase() === currentUser.name.toLowerCase());
+            const scoreDisplay = document.getElementById('last-score-display');
+            
+            if (existingData.length > 0) {
+                const latest = existingData[existingData.length - 1];
+                scoreDisplay.textContent = Math.round(latest.score);
+                scoreDisplay.className = `text-5xl font-extrabold ${latest.score >= 70 ? 'text-emerald-400' : 'text-amber-400'}`;
+            } else {
+                scoreDisplay.textContent = 'Belum Ada';
+                scoreDisplay.className = 'text-xl font-bold text-slate-500';
+            }
+
+            switchView('view-peserta-dashboard');
+        }
+
+        function initAdminDashboard() {
+            renderAdminTable();
+            switchView('view-admin-dashboard');
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            const emptyState = document.getElementById('admin-empty-state');
+            tbody.innerHTML = '';
+
+            if (allUsersData.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                const sortedData = [...allUsersData].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                sortedData.forEach((data, index) => {
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-slate-800/40 transition";
+                    
+                    const scoreColor = data.score >= 70 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-slate-500">${index + 1}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-white">${data.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-400">${formatDate(data.date)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center font-semibold">${data.correct}/${questions.length}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-lg border ${scoreColor}">
+                                ${Math.round(data.score)}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        function clearData() {
+            allUsersData = [];
+            localStorage.setItem('quiz_users_data_modern', JSON.stringify(allUsersData));
+            renderAdminTable();
+            showToast("Data berhasil direset!", "success");
+        }
 
         function startQuiz() {
-            startScreen.classList.add('hidden');
-            quizScreen.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            userAnswers = new Array(questions.length).fill(null);
             loadQuestion();
+            switchView('view-quiz');
         }
 
         function loadQuestion() {
-            isAnswered = false;
-            nextBtn.classList.add('hidden');
+            const q = questions[currentQuestionIndex];
             
-            const currentQ = quizData[currentQuestionIndex];
+            document.getElementById('current-q-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('question-text').textContent = `${currentQuestionIndex + 1}. ${q.q}`;
             
-            // Animasi transisi
-            quizScreen.classList.remove('fade-in');
-            void quizScreen.offsetWidth; // trigger reflow
-            quizScreen.classList.add('fade-in');
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('quiz-progress').style.width = `${progress}%`;
 
-            currentQuestionSpan.textContent = currentQuestionIndex + 1;
-            scoreDisplaySpan.textContent = score;
-            questionText.textContent = `${currentQuestionIndex + 1}. ${currentQ.question}`;
-            
+            const btnNext = document.getElementById('btn-next');
+            const btnText = document.getElementById('btn-next-text');
+            if (currentQuestionIndex === questions.length - 1) {
+                btnText.textContent = "Kirim Jawaban";
+                btnNext.style.backgroundImage = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                btnNext.style.boxShadow = "0 10px 25px -5px rgba(16, 185, 129, 0.4)";
+                btnNext.querySelector('i').className = "fa-solid fa-paper-plane ml-2 group-hover:translate-x-1 transition-transform";
+            } else {
+                btnText.textContent = "Selanjutnya";
+                btnNext.style.backgroundImage = "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)";
+                btnNext.style.boxShadow = "0 10px 25px -5px rgba(79, 70, 229, 0.4)";
+                btnNext.querySelector('i').className = "fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform";
+            }
+
+            const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
             
-            const labels = ['A', 'B', 'C', 'D'];
+            const letters = ['A', 'B', 'C', 'D'];
 
-            currentQ.options.forEach((option, index) => {
-                const button = document.createElement('button');
-                button.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-green-400 bg-white text-gray-700 font-medium flex items-center';
+            q.options.forEach((opt, index) => {
+                const isSelected = userAnswers[currentQuestionIndex] === index;
                 
-                button.innerHTML = `
-                    <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-4 text-gray-600 font-bold shrink-0">
-                        ${labels[index]}
-                    </span>
-                    <span>${option}</span>
+                const optHtml = `
+                    <label class="block relative option-label group">
+                        <input type="radio" name="answer" value="${index}" class="option-input sr-only" ${isSelected ? 'checked' : ''}>
+                        <div class="option-content w-full p-4 md:p-4.5 flex items-center rounded-2xl border border-slate-700/60 bg-slate-900/60 transition-all">
+                            <span class="option-letter w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-slate-800 text-slate-300 font-extrabold mr-4 text-sm border border-slate-700">
+                                ${letters[index]}
+                            </span>
+                            <span class="text-sm md:text-base font-medium text-slate-200 group-hover:text-white transition-colors">${opt}</span>
+                        </div>
+                    </label>
                 `;
-                
-                button.onclick = () => selectOption(index, button, labels);
-                optionsContainer.appendChild(button);
+                optionsContainer.insertAdjacentHTML('beforeend', optHtml);
             });
-        }
-
-        function selectOption(selectedIndex, selectedButton, labels) {
-            if (isAnswered) return;
-            isAnswered = true;
-
-            const currentQ = quizData[currentQuestionIndex];
-            const buttons = optionsContainer.querySelectorAll('button');
-            const isCorrect = selectedIndex === currentQ.correct;
-
-            if (isCorrect) {
-                score++;
-                scoreDisplaySpan.textContent = score;
-                selectedButton.classList.add('correct');
-            } else {
-                selectedButton.classList.add('incorrect');
-                // Highlight correct answer
-                buttons[currentQ.correct].classList.add('correct');
-            }
-
-            // Disable all buttons and update styles
-            buttons.forEach((btn, index) => {
-                btn.disabled = true;
-                btn.classList.remove('hover:border-green-400');
-                if (index !== currentQ.correct && index !== selectedIndex) {
-                    btn.classList.add('opacity-50');
-                }
-                
-                // Update badge style based on correctness
-                const badge = btn.querySelector('span');
-                if (btn.classList.contains('correct') || btn.classList.contains('incorrect')) {
-                   badge.classList.remove('bg-gray-100', 'text-gray-600');
-                   badge.classList.add('bg-white', btn.classList.contains('correct') ? 'text-green-600' : 'text-red-600');
-                }
-            });
-
-            nextBtn.classList.remove('hidden');
-            
-            // Change button text if it's the last question
-            if (currentQuestionIndex === quizData.length - 1) {
-                nextBtn.innerHTML = 'Lihat Hasil &rarr;';
-            }
         }
 
         function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < quizData.length) {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (!selected) {
+                showToast("Silakan pilih salah satu opsi jawaban!");
+                return;
+            }
+            
+            userAnswers[currentQuestionIndex] = parseInt(selected.value);
+
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
                 loadQuestion();
             } else {
-                showResult();
+                finishQuiz();
             }
         }
 
-        function showResult() {
-            quizScreen.classList.add('hidden');
-            resultScreen.classList.remove('hidden');
-            resultScreen.classList.add('fade-in');
+        function finishQuiz() {
+            let correct = 0;
+            userAnswers.forEach((ans, index) => {
+                if (ans === questions[index].ans) {
+                    correct++;
+                }
+            });
+
+            const score = (correct / questions.length) * 100;
+
+            const resultData = {
+                name: currentUser.name,
+                score: score,
+                correct: correct,
+                date: new Date().toISOString()
+            };
             
-            finalScoreSpan.textContent = score;
-            
-            let message = '';
-            let icon = '🏆';
-            if (score === 15) {
-                message = 'Sempurna! Kamu sangat paham tentang AI dan Teknologi.';
-                icon = '🌟';
-            } else if (score >= 10) {
-                message = 'Bagus sekali! Pengetahuanmu sudah sangat baik.';
-                icon = '👏';
-            } else if (score >= 5) {
-                message = 'Lumayan! Terus belajar tentang perkembangan teknologi ya.';
-                icon = '👍';
-            } else {
-                message = 'Jangan menyerah! Ayo pelajari lebih lanjut tentang AI.';
-                icon = '📚';
-            }
-            
-            scoreMessage.textContent = message;
-            scoreIcon.textContent = icon;
+            allUsersData.push(resultData);
+            localStorage.setItem('quiz_users_data_modern', JSON.stringify(allUsersData));
+
+            document.getElementById('final-score').textContent = Math.round(score);
+            document.getElementById('correct-count').textContent = correct;
+            document.getElementById('wrong-count').textContent = questions.length - correct;
+
+            setTimeout(() => {
+                const circle = document.getElementById('score-circle');
+                const circumference = 100;
+                circle.style.strokeDasharray = `${score}, ${circumference}`;
+                
+                if(score >= 80) circle.className = "text-emerald-400 transition-all duration-1000 ease-out";
+                else if(score < 50) circle.className = "text-rose-400 transition-all duration-1000 ease-out";
+                else circle.className = "text-indigo-400 transition-all duration-1000 ease-out";
+            }, 300);
+
+            renderReview();
+            switchView('view-result');
         }
 
-        function restartQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            resultScreen.classList.add('hidden');
-            startScreen.classList.remove('hidden');
-            nextBtn.innerHTML = 'Selanjutnya &rarr;';
+        function renderReview() {
+            const container = document.getElementById('review-container');
+            container.innerHTML = '';
+            
+            const letters = ['A', 'B', 'C', 'D'];
+
+            questions.forEach((q, i) => {
+                const userAns = userAnswers[i];
+                const isCorrect = userAns === q.ans;
+                
+                let icon = isCorrect 
+                    ? `<div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0 mt-0.5"><i class="fa-solid fa-check text-sm"></i></div>`
+                    : `<div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0 mt-0.5"><i class="fa-solid fa-xmark text-sm"></i></div>`;
+
+                let html = `
+                    <div class="p-4 md:p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-950/20 border-emerald-500/20' : 'bg-rose-950/20 border-rose-500/20'}">
+                        <div class="flex items-start gap-3.5">
+                            ${icon}
+                            <div class="w-full">
+                                <p class="text-sm md:text-base font-bold text-white mb-2 leading-snug">${i+1}. ${q.q}</p>
+                                <div class="space-y-1.5">
+                                    <p class="text-xs md:text-sm px-3.5 py-2 rounded-xl ${isCorrect ? 'bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/20' : 'bg-slate-800/80 text-slate-400 line-through border border-slate-700'}">
+                                        Jawabanmu: ${letters[userAns]}. ${q.options[userAns]}
+                                    </p>
+                                    ${!isCorrect ? `
+                                    <p class="text-xs md:text-sm px-3.5 py-2 rounded-xl bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30 inline-block mt-1">
+                                        <i class="fa-solid fa-key mr-1.5 text-emerald-400"></i> Kunci: ${letters[q.ans]}. ${q.options[q.ans]}
+                                    </p>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function returnToDashboard() {
+            initPesertaDashboard();
         }
     </script>
 </body>
-  </html>
+</html>
